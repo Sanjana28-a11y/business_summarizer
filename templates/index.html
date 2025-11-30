@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Business Summarizer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="page-bg">
+    <div class="glass">
+      <header class="header">
+        <div class="header-content">
+          <h1>Business Summarizer</h1>
+          <p class="tag">Concise, professional summaries for reports, meetings, and briefs.</p>
+        </div>
+        <button type="button" class="dark-mode-toggle" id="darkModeToggle" title="Toggle dark mode">🌙</button>
+      </header>
+
+      <main class="main">
+        <form method="post" class="form" id="summForm">
+          <label for="input_text" class="label"><h4>1. Paste text to summarize</h4></label>
+          <textarea id="input_text" name="input_text" rows="10" required>{{ input_text }}</textarea>
+
+          <div class="controls">
+
+            <!-- Method buttons -->
+            <div class="control-group">
+              <div class="group-label">Method</div>
+              <div class="method-buttons">
+                <button type="button"
+                        class="method-btn {{ 'active' if method=='abstractive' else '' }}"
+                        data-value="abstractive">Abstractive</button>
+
+                <button type="button"
+                        class="method-btn {{ 'active' if method=='extractive' else '' }}"
+                        data-value="extractive">Extractive</button>
+              </div>
+            </div>
+
+            <!-- Format buttons -->
+            <div class="control-group" style="margin-top:12px;">
+              <div class="group-label">2. Personalize your Summary</div>
+              <div class="format-buttons">
+                <button type="button"
+                        class="format-btn {{ 'active' if format_option=='standard' else '' }}"
+                        data-value="standard">Standard</button>
+
+                <button type="button"
+                        class="format-btn {{ 'active' if format_option=='paragraph' else '' }}"
+                        data-value="paragraph">Paragraph</button>
+
+                <button type="button"
+                        class="format-btn {{ 'active' if format_option=='bullets' else '' }}"
+                        data-value="bullets">Bullet Points</button>
+              </div>
+            </div>
+
+            <!-- hidden inputs that carry chosen values to server -->
+            <input type="hidden" name="method" id="methodInput" value="{{ method }}">
+            <input type="hidden" name="format_option" id="formatInput" value="{{ format_option }}">
+
+            <div class="buttons-row" style="margin-top:18px;">
+              <button type="button" class="btn-clear" id="clearBtn">Clear</button>
+              <button type="submit" class="btn-primary" name="action" value="summarize">Summarize</button>
+            </div>
+          </div>
+        </form>
+
+        <section class="result">
+          <h2>Summary</h2>
+          <div class="result-box">
+            {% if summary %}
+              {{ summary|replace('\n','<br>')|safe }}
+            {% else %}
+              No summary yet.
+            {% endif %}
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <small>Built for business clarity.</small>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // dark mode toggle
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    
+    if(isDarkMode){
+      document.body.classList.add('dark-mode');
+      darkModeToggle.textContent = '☀️';
+    }
+
+    darkModeToggle.addEventListener('click', function(){
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDark);
+      darkModeToggle.textContent = isDark ? '☀️' : '🌙';
+    });
+
+    // toggle method buttons
+    document.querySelectorAll('.method-btn').forEach(btn => {
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('.method-btn').forEach(b=>b.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('methodInput').value = this.dataset.value;
+      });
+    });
+
+    // toggle format buttons
+    document.querySelectorAll('.format-btn').forEach(btn => {
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('.format-btn').forEach(b=>b.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('formatInput').value = this.dataset.value;
+      });
+    });
+
+    // Clear button
+    document.getElementById('clearBtn').addEventListener('click', function(){
+      document.getElementById('summForm').reset();
+      document.getElementById('methodInput').value = 'abstractive';
+      document.getElementById('formatInput').value = 'standard';
+      document.querySelectorAll('.method-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.format-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelector('.method-btn[data-value="abstractive"]').classList.add('active');
+      document.querySelector('.format-btn[data-value="standard"]').classList.add('active');
+      const box = document.querySelector('.result-box');
+      if(box) box.innerHTML = "No summary yet.";
+    });
+  </script>
+</body>
+</html>
